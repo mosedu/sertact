@@ -91,7 +91,7 @@ $sJs = <<<EOT
         );
 
     pPaint.drawpage(
-        {},
+        {panel: pTool, scale: 1},
         {$sJson}
     );
     console.log(pPaint.drawpage('regions'));

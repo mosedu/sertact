@@ -115,3 +115,20 @@ a.desc:after {
     position: absolute;
 }
 
+.draw-border {
+    border: 1px solid #ff0000;
+    background-color: transparent;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+.text-control {
+    display: none;
+}
+
+.panel-control {
+    display: none;
+}
