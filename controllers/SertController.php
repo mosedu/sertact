@@ -8,6 +8,8 @@ use app\models\SertSearch;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\widgets\ActiveForm;
+use yii\web\Response;
 
 /**
  * SertController implements the CRUD actions for Sert model.
@@ -116,6 +118,26 @@ class SertController extends Controller
             $model = $this->findModel($id);
         }
 
+        if( Yii::$app->request->isAjax ) {
+            if( $model->load(Yii::$app->request->post()) ) {
+                $aValidate = ActiveForm::validate($model);
+                Yii::$app->response->format = Response::FORMAT_JSON;
+                if( count($aValidate) == 0 ) {
+//                    if( $model->save() ) {
+//                    }
+                }
+                return $aValidate;
+            }
+            else {
+                return $this->renderAjax(
+                    'draw',
+                    [
+                        'model' => $model,
+                    ]
+                );
+            }
+        }
+
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['index']);
 //            return $this->redirect(['view', 'id' => $model->sert_id]);
@@ -134,7 +156,9 @@ class SertController extends Controller
      */
     public function actionDelete($id)
     {
-        $this->findModel($id)->delete();
+        $model = $this->findModel($id); // ->delete();
+        $model->sert_active = 0;
+        $model->save();
 
         return $this->redirect(['index']);
     }

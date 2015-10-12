@@ -28,6 +28,17 @@
         src: ""
     };
 
+    var addElement = function(ob) {
+        var o = null;
+        if( ob.type == "page" ) {
+            o = new Page(ob.width, ob.height);
+        }
+        else if( ob.type == "text" ) {
+            o = new Text(ob);
+        }
+        return o;
+    };
+
     var methods = {
         init: function(options, regions) {
             var $editor = $(this);
@@ -43,11 +54,15 @@
             for(var i = 0; i < regions.length; i++) {
                 var oTmp = null;
                 if( regions[i].type == "page" ) {
-                    page = new Page(regions[i].height, regions[i].height);
+                    page = addElement(regions[i]); // new Page(regions[i].width, regions[i].height);
                     oTmp = page;
+                    page.draw($editor, settings.scale)
                 }
                 else if( regions[i].type == "text" ) {
-                    oTmp = new Text(regions[i]);
+                    oTmp = addElement(regions[i]); // new Text(regions[i]);
+                    if( page !== null ) {
+                        oTmp.draw(page.getElement($editor), settings.scale);
+                    }
                 }
 
                 if( oTmp !== null ) {
@@ -56,10 +71,11 @@
             }
 
             if( ob.length == 0 ) {
-                page = new Page(297, 210);
+                page = addElement({type: "page", width: 297, height: 210}); // new Page(297, 210);
                 ob.unshift(page);
+                page.draw($editor, settings.scale);
             }
-
+/*
             for(var i = 0; i < ob.length; i++) {
                 if( page === ob[i] ) {
                     ob[i].draw($editor, settings.scale);
@@ -68,7 +84,7 @@
                     ob[i].draw(page.getElement($editor), settings.scale);
                 }
             }
-
+*/
             $editor.data('drawpage', {
                 settings: settings,
                 regions: ob,
@@ -83,6 +99,26 @@
                 a.push(r[i].getData());
             }
             return a;
+        },
+        append: function(conf) {
+            var $editor = $(this),
+                data = $editor.data('drawpage');
+            data.regions.push(addElement(conf));
+        },
+        redraw: function() {
+            var $editor = $(this),
+                data = $editor.data('drawpage'),
+                page = null;
+            for(var i = 0; i < data.regions.length; i++) {
+                if( data.regions[i].type == "page" ) {
+                    page = data.regions[i].getElement($editor);
+                    data.regions[i].draw($editor, data.settings.scale);
+                }
+                else if( page !== null ) {
+                    data.regions[i].draw(page, data.settings.scale);
+                }
+
+            }
         }
     };
 
@@ -285,6 +321,7 @@
 })(window.jQuery);
 
 /**************************************************************************************************/
+/*
 jQuery(document).ready(function () {
     var pPaint = jQuery("#paint-region"),
         pTool = jQuery("#tool-region"),
@@ -302,6 +339,8 @@ jQuery(document).ready(function () {
             "click",
             function(event){
                 event.preventDefault();
+                pPaint.drawpage('append', {type: "text", text: "New text", fontsize: 20});
+                pPaint.drawpage('redraw');
                 return false;
             }
         );
@@ -315,3 +354,4 @@ jQuery(document).ready(function () {
     );
     console.log(pPaint.drawpage('regions'));
 });
+*/

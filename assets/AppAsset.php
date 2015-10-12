@@ -21,6 +21,7 @@ class AppAsset extends AssetBundle
         'css/site.css',
     ];
     public $js = [
+        'js/json2.js',
         'js/draw.js',
     ];
     public $depends = [

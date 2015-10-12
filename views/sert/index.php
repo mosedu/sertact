@@ -32,7 +32,18 @@ $this->params['breadcrumbs'][] = $this->title;
 //            'sert_created',
             'sert_updated',
 
-            ['class' => 'yii\grid\ActionColumn'],
+            [
+                'class' => 'yii\grid\ActionColumn',
+                'template' => '{draw} {delete}',
+                'buttons' => [
+                    'draw' => function ($url, $model, $key) {
+                        $options = [
+                            'title' => 'Изменить',
+                            'aria-label' => 'Изменить',];
+                        return Html::a('<span class="glyphicon glyphicon-pencil"></span>', $url, $options);
+                    },
+                ],
+            ],
         ],
     ]); ?>
 

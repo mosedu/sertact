@@ -3,6 +3,8 @@
 namespace app\models;
 
 use Yii;
+use yii\behaviors\TimestampBehavior;
+use yii\db\Expression;
 
 /**
  * This is the model class for table "{{%sert}}".
@@ -16,6 +18,19 @@ use Yii;
  */
 class Sert extends \yii\db\ActiveRecord
 {
+    public function behaviors() {
+        return [
+            // дата создания ресурса
+            [
+                'class' => TimestampBehavior::className(),
+                'createdAtAttribute' => 'sert_created',
+                'updatedAtAttribute' => 'sert_updated',
+                'value' => new Expression('NOW()'),
+            ],
+
+        ];
+    }
+
     /**
      * @inheritdoc
      */
@@ -30,7 +45,7 @@ class Sert extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['sert_name', 'sert_created', 'sert_updated'], 'required'],
+            [['sert_name', ], 'required'],
             [['sert_active'], 'integer'],
             [['sert_template'], 'string'],
             [['sert_created', 'sert_updated'], 'safe'],
