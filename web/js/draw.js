@@ -13,7 +13,10 @@
     var defaults = {
         //
         scale: 2.0, // px/mm
-        panel: null // jQuery object for controls
+        panel: null, // jQuery object for controls
+        templates: { text: null, img: null, page: null }
+        // шаблоны панелей для типов данных
+        //
     };
 
     var textAttributes = {
@@ -33,13 +36,22 @@
         var o = null;
         if( ob.type == "page" ) {
             o = new Page(ob.width, ob.height);
-            o.setEditor(editor);
+            o.val("editor", editor);
         }
         else if( ob.type == "text" ) {
             o = new Text(ob);
-            o.setEditor(editor);
+            o.val("editor", editor);
         }
         return o;
+    };
+
+    var selected = null;
+    var select = function(ob) {
+        if( selected !== null ) {
+            selected.select(false);
+        }
+//        ob.select(true);
+        selected = ob;
     };
 
     var addToPanel = function(panel, ob) {
@@ -47,7 +59,7 @@
             return;
         }
         var data = ob.getData(),
-            el = jQuery('<div><a href="#" class="btn btn-default">'+data.type+'</a><div class="panel-control"></div></div>'),
+            el = jQuery('<div class="selectregion"><a href="#" class="btn btn-default">'+data.title+'</a><div class="panel-control"></div></div>'),
             dom = ob.getElement();
 
         panel.append(el);
@@ -57,13 +69,17 @@
             function(event) {
                 var oControl = panel.find("."+data.type+"-control");
                 event.preventDefault();
-                dom.parent().find(".draw-border").remove();
-                dom.append(jQuery('<div class="draw-border"></div>'));
-                panel.find(".panel-control").slideUp("slow", function(){
-                    ob.setControls(oControl);
-                    el.find("div").append(oControl).slideDown("slow");
-                });
+                ob.select(true);
+//                select(ob);
 
+                /*
+                                dom.parent().find(".draw-border").remove();
+                                dom.append(jQuery('<div class="draw-border"></div>'));
+                                panel.find(".panel-control").slideUp("slow", function(){
+                                    ob.setControls(oControl);
+                                    el.find("div").append(oControl).slideDown("slow");
+                                });
+                */
                 return false;
             }
         );
@@ -75,6 +91,7 @@
                 return false;
             }
         );
+
     };
 
     var preparePanels = function(panel) {
@@ -94,7 +111,7 @@
         );
 
         panel.append(o);
-    }
+    };
 
     var methods = {
         init: function(options, regions) {
@@ -135,16 +152,7 @@
             }
 
             preparePanels(settings.panel);
-/*
-            for(var i = 0; i < ob.length; i++) {
-                if( page === ob[i] ) {
-                    ob[i].draw($editor, settings.scale);
-                }
-                else {
-                    ob[i].draw(page.getElement($editor), settings.scale);
-                }
-            }
-*/
+
             $editor.data('drawpage', {
                 settings: settings,
                 regions: ob,
@@ -164,6 +172,9 @@
             var $editor = $(this),
                 data = $editor.data('drawpage');
             data.regions.push(addElement(conf));
+        },
+        select: function(ob) {
+            select(ob);
         },
         redraw: function() {
             var $editor = $(this),
@@ -185,20 +196,36 @@
     /**************************************************************************************************/
 
     var Page = function(w, h){
-        var width = w,
-            height = h;
-            editor = null;
+        var data = {
+                type: "page",
+                width: w,
+                height: h,
+                title: "page",
+                editor: null,
+                element: null,
+                selected: false
+            },
+            val = function(name, val) {
+                if( (typeof name != "string") || !(name in data) ) {
+                    throw new Error('Invalid property '+ name + ' in Page');
+                }
+
+                if( typeof val === "undefined") {
+                    return data[name];
+                }
+                data[name] = val;
+            };
+
         return {
             type: "page",
-            setEditor: function(ed) {
-                editor = ed;
-            },
+            val: val,
+            select: function(b) {},
             size: function(w, h) {
                 if( typeof w === "undefined") {
-                    return [width, height];
+                    return [val("width"), val("height")];
                 }
-                width = w;
-                height = h;
+                val("width", w);
+                val("height", h);
             },
             draw: function(el, scale) {
                 var page = el.find(".draw-page");
@@ -206,17 +233,19 @@
                     page = jQuery('<div />').addClass('draw-page');
                     el.append(page);
                 }
-                page.width(width * scale);
-                page.height(height * scale);
+                page.width(val("width") * scale);
+                page.height(val("height") * scale);
+                val("element", page);
             },
-            getElement: function(el) {
-                return el.find(".draw-page");
+            getElement: function() {
+                return val("element");
             },
             getData: function() {
                 return {
-                    type: "page",
-                    width: width,
-                    height: height
+                    type: val("type"),
+                    title: val("title"),
+                    width: val("width"),
+                    height: val("height")
                 };
             }
         };
@@ -224,216 +253,219 @@
 
     /**************************************************************************************************/
 
-    var Text = function(data){
-        var text = "text" in data ? data.text : "text",
-            bold = false,
-            italic = false,
-            underline = false,
-            align = "left",
-            fontsize = 10, // mm
-            left = null, // mm
-            right = null, // mm
-            top = null, // mm
-            bottom = null, // mm
-            width = null, // mm
-            height = null, // mm
-            id = "text-" + jQuery(".draw-text").length,
-            dom = null,
-            editor = null,
-            styleToVar = function(style) {
-                if( "bold" in style ) {
-                    bold = style.bold;
-                }
-                if( "italic" in style ) {
-                    italic = style.italic;
-                }
-                if( "underline" in style ) {
-                    underline = style.underline;
-                }
-                if( "align" in style ) {
-                    align = style.align;
-                }
-                if( "fontsize" in style ) {
-                    fontsize = style.fontsize;
-                }
-                if( "left" in style ) {
-                    left = style.left;
-                }
-                if( "right" in style ) {
-                    right = style.right;
-                }
-                if( "top" in style ) {
-                    top = style.top;
-                }
-                if( "bottom" in style ) {
-                    bottom = style.bottom;
-                }
-                if( "width" in style ) {
-                    width = style.width;
-                }
-                if( "height" in style ) {
-                    height = style.height;
-                }
+    var Text = function(conf){
+        var n = jQuery(".draw-text").length,
+            data = {
+                type: "text",
+                text: "text" in conf ? conf.text : "text",
+                title: "text " + n,
+                bold: false,
+                italic: false,
+                underline: false,
+                align: "left",
+                fontsize: 10, // mm
+                left: null,   // mm
+                right: null,  // mm
+                top: null,    // mm
+                bottom: null, // mm
+                width: null,  // mm
+                height: null, // mm
+                id: "text-" + n,
+                editor: null,
+                element: null,
+                selected: false
             },
+            val = function(name, val) {
+                if( (typeof name != "string") || !(name in data) ) {
+                    throw new Error('Invalid property '+ name + ' in Page');
+                }
+
+                if( typeof val === "undefined") {
+                    return data[name];
+                }
+                data[name] = val;
+            };
+
+            var
+                styleToVar = function(conf){
+                    for(var i in conf) {
+                        val(i, conf[i]);
+                    }
+                },
             stylize = function(ob, scale) {
                 var oSt = {
-                    "font-size": fontsize * scale + "px",
-                    "text-align": align,
-                    "font-weight": bold ? "bold" : "normal",
-                    "font-style": italic ? "italic" : "normal",
-                    "text-decoration": underline ? "underline" : "none"
-                };
-                if( left !== null ) {
-                    oSt.left = left * scale + "px";
-                }
-                if( right !== null ) {
-                    oSt.right = right * scale + "px";
-                }
-                if( top !== null ) {
-                    oSt.top = top * scale + "px";
-                }
-                if( bottom !== null ) {
-                    oSt.bottom = bottom * scale + "px";
-                }
-                if( width !== null ) {
-                    oSt.width = width * scale + "px";
-                }
-                if( height !== null ) {
-                    oSt.height = height * scale + "px";
+                        "font-size": val("fontsize") * scale + "px",
+                        "text-align": val("align"),
+                        "font-weight": val("bold") ? "bold" : "normal",
+                        "font-style": val("italic") ? "italic" : "normal",
+                        "text-decoration": val("underline") ? "underline" : "none"
+                    },
+                    aKeys = ["left", "right", "top", "bottom", "width", "height"];
+                for(var i = 0; i < aKeys.length; i++) {
+                    var k = aKeys[i], v = val(k);
+                    if( v !== null ) {
+                        oSt[k] = v * scale + "px";
+                    }
                 }
                 ob.css(oSt);
             };
 
-        styleToVar(data);
+        styleToVar(conf);
 
-        return {
+        var oRet = {
             type: "text",
-            setEditor: function(ed) {
-                editor = ed;
+            val: val,
+            select: function(b) {
+                var ed = val("editor"),
+                    data = ed.data('drawpage');
+                b = (typeof b == "undefined") ? true : b;
+                if( b ) {
+                    ed.drawpage("select", oRet);
+                }
+                val("selected", b);
+                oRet.draw(ed, data.settings.scale);
             },
             text: function(txt) {
-                if( typeof txt === "undefined") {
-                    return text;
-                }
-                text = txt;
+                return val("text", txt);
             },
             draw: function(el, scale) {
-//                var ob = el.find("#" + id);
-                var ob = el.find("." + id);
+                var ob = el.find("." + val("id"));
                 if( ob.length == 0 ) {
                     ob = jQuery('<div />')
                         .addClass('draw-text')
-                        .addClass(id);
-//                    ob.attr("id", id);
+                        .addClass(val("id"));
                     el.append(ob);
-                    dom = ob;
-                    ob.draggable({
-                        containment: "parent" ,
-                        stop: function() {
-                            var pos = ob.position();
-                            if( left !== null ) {
-                                left = pos.left / scale;
-                            }
-                            if( right !== null ) {
-                                right = (ob.parent().width() - pos.left - ob.width()) / scale;
-                            }
-                            if( top !== null ) {
-                                top = pos.top / scale;
-                            }
-                            if( bottom !== null ) {
-                                bottom = (ob.parent().height() - pos.top - ob.height()) / scale;
-                            }
-                            if( width !== null ) {
-                                width = ob.width() / scale;
-                            }
-                            if( height !== null ) {
-                                height = ob.height() / scale;
-                            }
+                    val("element", ob);
+                }
+
+                try {
+                    ob.resizable("destroy");
+//                        ob.resizable("disable");
+                }
+                catch (err) {}
+
+                try {
+                    ob.draggable("destroy");
+                }
+                catch (err) {}
+
+                ob.text(val("text"));
+
+                stylize(ob, scale);
+
+                if( val("selected") ) {
+                    var border = ob.parent().find(".draw-border");
+                    if( border.length == 0 ) {
+                        border = jQuery('<div class="draw-border"></div>');
+                    }
+                    ob.append(border);
+                    ob.resizable({
+                        stop: function( event, ui ){
+//                            if( val("width") !== null ) {
+                                val("width", ob.width() / scale);
+//                            }
+//                            if( val("height") !== null ) {
+                                val("height", ob.height() / scale);
+//                            }
                         }
                     });
                 }
-                ob.text(text);
-                stylize(ob, scale);
+/*
+                panel.find(".panel-control").slideUp("slow", function(){
+                    ob.setControls(oControl);
+                    el.find("div").append(oControl).slideDown("slow");
+                });
+*/
+                ob.draggable({
+                    containment: "parent",
+                    start: function() {
+                        setTimeout(function(){ oRet.select(true); }, 20);
+                    },
+                    stop: function() {
+                        var pos = ob.position();
+                        if( val("left") !== null ) {
+                            val("left", pos.left / scale);
+                        }
+                        if( val("right") !== null ) {
+                            val("right", (ob.parent().width() - pos.left - ob.width()) / scale);
+                        }
+                        if( val("top") !== null ) {
+                            val("top", pos.top / scale);
+                        }
+                        if( val("bottom") !== null ) {
+                            val("bottom", (ob.parent().height() - pos.top - ob.height()) / scale);
+                        }
+                    }
+                });
             },
             setStyle: function(style) {
                 styleToVar(style);
             },
-            getElement: function(el) {
-                return dom;
-            },
-            setControls: function(oControl) {
-                var button;
-                button = oControl.find(".button-bold");
-                if( bold ) {
-                    button.addClass("btn-success");
-                }
-                else {
-                    button.removeClass("btn-success");
-                }
-                button.off("click").on("click", function(event){
-                    var b = jQuery(this);
-                    b.toggleClass("btn-success");
-                    bold = b.hasClass("btn-success");
-                    editor.drawpage('redraw');
-                });
-
-                button = oControl.find(".button-italic");
-                if( italic ) {
-                    button.addClass("btn-success");
-                }
-                else {
-                    button.removeClass("btn-success");
-                }
-
-                button = oControl.find(".button-underline");
-                if( underline ) {
-                    button.addClass("btn-success");
-                }
-                else {
-                    button.removeClass("btn-success");
-                }
-
-
-                oControl.find(".button-align-left, .button-align-center, .button-align-right").removeClass("btn-success");
-                oControl.find(".button-align-" + align).addClass("btn-success");
-
+            getElement: function() {
+                return val("element");
             },
             getData: function() {
-                var ob = {
-                    type: "text",
-                    text: text,
-                    bold: bold,
-                    italic: italic,
-                    underline: underline,
-                    align: align,
-                    fontsize: fontsize
-                };
-                if( left != null ) {
-                    ob.left = left;
-                }
-                if( right != null ) {
-                    ob.right = right;
-                }
-                if( top != null ) {
-                    ob.top = top;
-                }
-                if( bottom != null ) {
-                    ob.bottom = bottom;
-                }
-                if( width != null ) {
-                    ob.width = width;
-                }
-                if( height != null ) {
-                    ob.height = height;
+                var ob = {};
+                for(var i in data) {
+                    if( (i == "id") || (i == "editor") || (i == "element") ) { //  || (i == "selected")
+                        continue;
+                    }
+                    var v = data[i];
+                    if( v !== null ) {
+                        ob[i] = v;
+                    }
                 }
                 return ob;
             }
         };
+        return oRet;
     };
 
 })(window.jQuery);
 
 /**************************************************************************************************/
+/*
+ setControls: function(oControl) {
+ var button;
+ button = oControl.find(".button-bold");
+ if( bold ) {
+ button.addClass("btn-success");
+ }
+ else {
+ button.removeClass("btn-success");
+ }
+ button.off("click").on("click", function(event){
+ event.preventDefault();
+ var b = jQuery(this);
+ b.toggleClass("btn-success");
+ bold = b.hasClass("btn-success");
+ editor.drawpage('redraw');
+ return false;
+ });
+
+ button = oControl.find(".button-italic");
+ if( italic ) {
+ button.addClass("btn-success");
+ }
+ else {
+ button.removeClass("btn-success");
+ }
+
+ button = oControl.find(".button-underline");
+ if( underline ) {
+ button.addClass("btn-success");
+ }
+ else {
+ button.removeClass("btn-success");
+ }
+
+
+ oControl.find(".button-align-left, .button-align-center, .button-align-right").removeClass("btn-success");
+ oControl.find(".button-align-" + align).addClass("btn-success");
+
+ },
+
+*/
 /*
 jQuery(document).ready(function () {
     var pPaint = jQuery("#paint-region"),
