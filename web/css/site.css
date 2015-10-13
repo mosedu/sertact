@@ -113,6 +113,7 @@ a.desc:after {
     border: 0px none transparent;
     background-color: transparent;
     position: absolute;
+    overflow: hidden;
 }
 
 .draw-border {

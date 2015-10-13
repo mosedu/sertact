@@ -50,7 +50,42 @@
         if( selected !== null ) {
             selected.select(false);
         }
-//        ob.select(true);
+
+        if( selected != ob ) {
+            var panel = ob.val("editor").data('drawpage').settings.panel,
+                open = panel.find(".panel-control:visible"),
+                oControl = panel.find("."+ob.val("type")+"-control");
+
+            if( open.length != 0 ) {
+                open.hide();
+/*                open.slideUp("fast", function(){
+                    var newPanel = ob.val("panel");
+                    if( newPanel !== null ) {
+                        newPanel.find(".panel-control").append(oControl);
+                        oControl.show();
+//                        newPanel.find(".panel-control").show();
+                        newPanel.find(".panel-control").slideDown("fast");
+                    }
+                });
+            }
+            else {
+                var newPanel = ob.val("panel");
+                if( newPanel !== null ) {
+                    newPanel.find(".panel-control").append(oControl);
+                    oControl.show();
+//                    newPanel.find(".panel-control").show();
+                    newPanel.find(".panel-control").slideDown("fast");
+                }
+ */
+            }
+                var newPanel = ob.val("panel");
+                if( newPanel !== null ) {
+                    newPanel.find(".panel-control").append(oControl);
+                    oControl.show();
+//                    newPanel.find(".panel-control").show();
+                    newPanel.find(".panel-control").slideDown("fast");
+                }
+        }
         selected = ob;
     };
 
@@ -63,26 +98,17 @@
             dom = ob.getElement();
 
         panel.append(el);
+        ob.val("panel", el);
 
         dom.on(
             "click",
             function(event) {
-                var oControl = panel.find("."+data.type+"-control");
                 event.preventDefault();
                 ob.select(true);
-//                select(ob);
-
-                /*
-                                dom.parent().find(".draw-border").remove();
-                                dom.append(jQuery('<div class="draw-border"></div>'));
-                                panel.find(".panel-control").slideUp("slow", function(){
-                                    ob.setControls(oControl);
-                                    el.find("div").append(oControl).slideDown("slow");
-                                });
-                */
                 return false;
             }
         );
+
         el.find("a").on(
             "click",
             function(event) {
@@ -203,7 +229,8 @@
                 title: "page",
                 editor: null,
                 element: null,
-                selected: false
+                selected: false,
+                panel: null
             },
             val = function(name, val) {
                 if( (typeof name != "string") || !(name in data) ) {
@@ -273,7 +300,8 @@
                 id: "text-" + n,
                 editor: null,
                 element: null,
-                selected: false
+                selected: false,
+                panel: null
             },
             val = function(name, val) {
                 if( (typeof name != "string") || !(name in data) ) {
@@ -370,12 +398,7 @@
                         }
                     });
                 }
-/*
-                panel.find(".panel-control").slideUp("slow", function(){
-                    ob.setControls(oControl);
-                    el.find("div").append(oControl).slideDown("slow");
-                });
-*/
+
                 ob.draggable({
                     containment: "parent",
                     start: function() {
@@ -407,7 +430,7 @@
             getData: function() {
                 var ob = {};
                 for(var i in data) {
-                    if( (i == "id") || (i == "editor") || (i == "element") ) { //  || (i == "selected")
+                    if( (i == "id") || (i == "editor") || (i == "element") || (i == "panel") ) { //  || (i == "selected")
                         continue;
                     }
                     var v = data[i];
