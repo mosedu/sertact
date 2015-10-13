@@ -14,7 +14,8 @@
         //
         scale: 2.0, // px/mm
         panel: null, // jQuery object for controls
-        templates: { text: null, img: null, page: null }
+        templates: { text: null, img: null, page: null },
+        selectedclass: "btn-success"
         // шаблоны панелей для типов данных
         //
     };
@@ -45,49 +46,132 @@
         return o;
     };
 
-    var selected = null;
-    var select = function(ob) {
-        if( selected !== null ) {
-            selected.select(false);
-        }
+    var selected = null,
+        aConnect = {},
+        select = function(ob) {
+            if( selected !== null ) {
+                selected.select(false);
+            }
 
-        if( selected != ob ) {
-            var panel = ob.val("editor").data('drawpage').settings.panel,
-                open = panel.find(".panel-control:visible"),
-                oControl = panel.find("."+ob.val("type")+"-control");
+            if( selected != ob ) {
+                var settings = ob.val("editor").data('drawpage').settings,
+                    panel = settings.panel,
+                    open = panel.find(".panel-control:visible"),
+                    oControl = panel.find("."+ob.val("type")+"-control");
 
-            if( open.length != 0 ) {
-                open.hide();
-/*                open.slideUp("fast", function(){
-                    var newPanel = ob.val("panel");
-                    if( newPanel !== null ) {
-                        newPanel.find(".panel-control").append(oControl);
-                        oControl.show();
-//                        newPanel.find(".panel-control").show();
-                        newPanel.find(".panel-control").slideDown("fast");
+                if( open.length != 0 ) {
+                    open.hide();
+                    aConnect = {};
+                }
+
+                var newPanel = ob.val("panel");
+                if( newPanel !== null ) {
+                    var panControls = newPanel.find(".panel-control");
+                    panControls.append(oControl);
+                    oControl.show();
+                    aConnect = connectFields(ob, panControls);
+                    initControls(ob, aConnect, settings);
+    //                panControls.show();
+                    panControls.slideDown("fast");
+                }
+            }
+            selected = ob;
+        },
+        connectFields = function(ob, oDom) {
+            var oFld = ob.getData(),
+                aConn = {},
+                findEl = function(dom){
+                    dom.children().each(function(index, element){
+                        var o = jQuery(this), v = o.data('field');
+                        console.log(o, v);
+                        if( v ) {
+                            for( var i in oFld ) {
+                                if( i == v ) {
+                                    if( !(i in aConn) ) {
+                                        aConn[i] = [];
+                                    }
+                                    aConn[i].push(o);
+                                    break;
+                                }
+                            }
+                        }
+                        findEl(o);
+                    });
+                };
+            findEl(oDom);
+            console.log(aConn);
+            return aConn;
+        },
+        setForm = function(ob, settings, name, control){
+            if( control.length == 1 ) {
+                var sTag = control[0].get(0).tagName.toLowerCase(),
+                    atr = control[0].attr("type"),
+                    type = (atr === undefined ? "": atr.toLowerCase()),
+                    formel = control[0],
+                    v = ob.val(name);
+                if( (sTag == "a") || (sTag == "button") ) {
+                    if( v ) {
+                        formel.addClass(settings.selectedclass);
                     }
-                });
-            }
-            else {
-                var newPanel = ob.val("panel");
-                if( newPanel !== null ) {
-                    newPanel.find(".panel-control").append(oControl);
-                    oControl.show();
-//                    newPanel.find(".panel-control").show();
-                    newPanel.find(".panel-control").slideDown("fast");
+                    else {
+                        formel.removeClass(settings.selectedclass);
+                    }
+                    formel
+                        .off("click")
+                        .on(
+                        "click",
+                        function(event){
+                            var th = jQuery(this);
+                            event.preventDefault();
+                            th.toggleClass(settings.selectedclass);
+                            ob.val(name, th.hasClass(settings.selectedclass));
+                            ob.draw(ob.val("editor"), settings.scale);
+                            return false;
+                        }
+                    );
                 }
- */
-            }
-                var newPanel = ob.val("panel");
-                if( newPanel !== null ) {
-                    newPanel.find(".panel-control").append(oControl);
-                    oControl.show();
-//                    newPanel.find(".panel-control").show();
-                    newPanel.find(".panel-control").slideDown("fast");
+                else if( sTag == "input" ) {
+                    if( type == "checkbox" ) {
+                        formel.prop('checked', v);
+                        formel
+                            .off("change")
+                            .on(
+                            "change",
+                            function(event){
+                                var th = jQuery(this);
+                                event.preventDefault();
+                                ob.val(name, th.prop('checked'));
+                                ob.draw(ob.val("editor"), settings.scale);
+                                return false;
+                            }
+                        );
+                    }
+                    else if( (type == "text") || (type == "select") || (type == "radio") ) {
+                        var evnt = (type == "text") ? "keyup" : "change";
+                        formel.val(v);
+                        formel
+                            .off(evnt)
+                            .on(
+                            evnt,
+                            function(event){
+                                var th = jQuery(this);
+                                event.preventDefault();
+                                ob.val(name, th.val());
+                                ob.draw(ob.val("editor"), settings.scale);
+                                return false;
+                            }
+                        );
+                    }
                 }
-        }
-        selected = ob;
-    };
+            }
+
+        },
+        initControls = function(ob, aConnect, settings){
+            for(var i in aConnect) {
+                var el = aConnect[i];
+                setForm(ob, settings, i, el);
+            }
+        };
 
     var addToPanel = function(panel, ob) {
         if( panel === null ) {
@@ -126,13 +210,16 @@
         }
         var o = jQuery(
             '<div class="text-control">'
-            + '<a href="#" title="Bold" class="button-bold btn btn-default">B</a>'
-            + '<a href="#" title="Italic" class="button-italic btn btn-default">I</a>'
-            + '<a href="#" title="Underline" class="button-underline btn btn-default">U</a>'
+            + '<a href="#" title="Bold" class="button-bold btn btn-default" data-field="bold">B</a>'
+//            + '<a href="#" title="Italic" class="button-italic btn btn-default" data-field="italic">I</a>'
+            + '<input type="checkbox" id="cb-italic" data-field="italic"> <label for="cb-italic">Italic</label>'
+            + '<a href="#" title="Underline" class="button-underline btn btn-default" data-field="underline">U</a>'
             + '<br />'
-            + '<a href="#" title="Left" class="button-align-left btn btn-default">Left</a>'
-            + '<a href="#" title="Center" class="button-align-center btn btn-default">Center</a>'
-            + '<a href="#" title="Right" class="button-align-right btn btn-default">Right</a>'
+            + '<a href="#" title="Left" class="button-align-left btn btn-default" data-field="align">Left</a>'
+            + '<a href="#" title="Center" class="button-align-center btn btn-default" data-field="align">Center</a>'
+            + '<a href="#" title="Right" class="button-align-right btn btn-default" data-field="align">Right</a>'
+            + '<br />'
+            + '<input type="text" data-field="text" />'
             + '</div>'
         );
 
