@@ -103,12 +103,15 @@
             return aConn;
         },
         setForm = function(ob, settings, name, control){
+            if( control.length < 1 ) {
+                return;
+            }
+            var sTag = control[0].get(0).tagName.toLowerCase(),
+                atr = control[0].attr("type"),
+                type = (atr === undefined ? "": atr.toLowerCase()),
+                formel = control[0],
+                v = ob.val(name);
             if( control.length == 1 ) {
-                var sTag = control[0].get(0).tagName.toLowerCase(),
-                    atr = control[0].attr("type"),
-                    type = (atr === undefined ? "": atr.toLowerCase()),
-                    formel = control[0],
-                    v = ob.val(name);
                 if( (sTag == "a") || (sTag == "button") ) {
                     if( v ) {
                         formel.addClass(settings.selectedclass);
@@ -130,7 +133,7 @@
                         }
                     );
                 }
-                else if( sTag == "input" ) {
+                else if( (sTag == "input") || (sTag == "select") ) {
                     if( type == "checkbox" ) {
                         formel.prop('checked', v);
                         formel
@@ -146,7 +149,7 @@
                             }
                         );
                     }
-                    else if( (type == "text") || (type == "select") || (type == "radio") ) {
+                    else if( (type == "text") || (sTag == "select") || (type == "radio") ) {
                         var evnt = (type == "text") ? "keyup" : "change";
                         formel.val(v);
                         formel
@@ -161,6 +164,65 @@
                                 return false;
                             }
                         );
+                    }
+                }
+            }
+            else if( control.length > 1 ) {
+                if( (sTag == "a") || (sTag == "button") ) {
+                    var sAttr = (sTag == "a") ? "data-value" : "value";
+                    for(var i = 0; i < control.length; i++) {
+                        formel = control[i];
+                        if( v == formel.attr(sAttr) ) {
+                            formel.addClass(settings.selectedclass);
+                        }
+                        else {
+                            formel.removeClass(settings.selectedclass);
+                        }
+                        formel
+                            .off("click")
+                            .on(
+                            "click",
+                            function(event){
+                                var th = jQuery(this);
+                                event.preventDefault();
+                                for(var i = 0; i < control.length; i++) {
+                                    control[i].removeClass(settings.selectedclass);
+                                }
+                                th.addClass(settings.selectedclass);
+                                ob.val(name, th.attr(sAttr));
+                                ob.draw(ob.val("editor"), settings.scale);
+                                return false;
+                            }
+                        );
+                    }
+                }
+                else if( sTag == "input" ) {
+                    if( type == "radio" ) {
+                        for(var i = 0; i < control.length; i++) {
+                            formel = control[i];
+                            if( v == formel.val() ) {
+                                formel.prop('checked', true);
+                            }
+                            else {
+                                formel.prop('checked', false);
+                            }
+                            formel
+                                .off("click")
+                                .on(
+                                "click",
+                                function(event){
+                                    var th = jQuery(this);
+//                                    event.preventDefault();
+                                    for(var i = 0; i < control.length; i++) {
+                                        control[i].prop('checked', false);
+                                    }
+                                    th.prop('checked', true);
+                                    ob.val(name, th.val());
+                                    ob.draw(ob.val("editor"), settings.scale);
+//                                    return false;
+                                }
+                            );
+                        }
                     }
                 }
             }
@@ -215,9 +277,14 @@
             + '<input type="checkbox" id="cb-italic" data-field="italic"> <label for="cb-italic">Italic</label>'
             + '<a href="#" title="Underline" class="button-underline btn btn-default" data-field="underline">U</a>'
             + '<br />'
-            + '<a href="#" title="Left" class="button-align-left btn btn-default" data-field="align">Left</a>'
-            + '<a href="#" title="Center" class="button-align-center btn btn-default" data-field="align">Center</a>'
-            + '<a href="#" title="Right" class="button-align-right btn btn-default" data-field="align">Right</a>'
+//            + '<a href="#" title="Left" class="button-align-left btn btn-default" data-field="align" data-value="left">Left</a>'
+//            + '<a href="#" title="Center" class="button-align-center btn btn-default" data-field="align" data-value="center">Center</a>'
+//            + '<a href="#" title="Right" class="button-align-right btn btn-default" data-field="align" data-value="right">Right</a>'
+              + '<select data-field="align"><option value="left">Left</option><option value="right">Right</option><option value="center">Center</option></select>'
+
+//            + '<input type="radio" name="group2" value="left" data-field="align"> Left '
+//            + '<input type="radio" name="group2" value="center" data-field="align"> Center'
+//            + '<input type="radio" name="group2" value="right"  data-field="align"> Rigth'
             + '<br />'
             + '<input type="text" data-field="text" />'
             + '</div>'
