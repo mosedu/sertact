@@ -26,6 +26,46 @@ class FontController extends Controller
     public function actionIndex()
     {
         echo 'font/create' . "\n";
+/*
+Открываем https://www.google.com/fonts/
+Переходим на страницу шрифта https://www.google.com/fonts#UsePlace:use/Collection:Ubuntu+Mono
+Там справа качаем коллекцию
+Переходим по линку, который дан на странице:
+<link href='https://fonts.googleapis.com/css?family=Ubuntu+Mono' rel='stylesheet' type='text/css'>
+
+Там берем css:
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Ubuntu Mono'), local('UbuntuMono-Regular'), url(https://fonts.gstatic.com/s/ubuntumono/v6/ViZhet7Ak-LRXZMXzuAfkbWJ8El2VFcUWHOh_Oq6BA8.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Ubuntu Mono Bold'), local('UbuntuMono-Bold'), url(https://fonts.gstatic.com/s/ubuntumono/v6/ceqTZGKHipo8pJj4molytrLZkzWHE0Rai0z0KZwCYHE.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: italic;
+  font-weight: 400;
+  src: local('Ubuntu Mono Italic'), local('UbuntuMono-Italic'), url(https://fonts.gstatic.com/s/ubuntumono/v6/KAKuHXAHZOeECOWAHsRKA-S36XEWCHkcB1lVV5U7Zv8.woff2) format('woff2');
+}
+@font-face {
+  font-family: 'Ubuntu Mono';
+  font-style: italic;
+  font-weight: 700;
+  src: local('Ubuntu Mono Bold Italic'), local('UbuntuMono-BoldItalic'), url(https://fonts.gstatic.com/s/ubuntumono/v6/n_d8tv_JOIiYyMXR4eaV9cO5-Pn8cGVFpxXkUbgnQ_0.woff2) format('woff2');
+}
+Качаем по этим адресам woff и даем им имена
+Кладем их в нашу папку css, пишем туда исправленные правила для css
+
+Из скачанного zip файлы кладем в папку asset и натравливаем на них yii font/create
+
+Добавляем в файл draw.php в список название семейства и в вывод в pdf - соотвествие этого семейства названию файла шрифта у tcpdf
+
+ */
     }
 
     /**

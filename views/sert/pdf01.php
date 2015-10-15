@@ -18,6 +18,7 @@ $sFontDir = str_replace('/', DIRECTORY_SEPARATOR, $sFontDir);
 Unicode russian:
 
 arial
+cour
 dejavusans
 dejavusanscondensed
 dejavusansextralight
@@ -31,9 +32,10 @@ msungstdlight
 stsongstdlight
 */
 $aFontReplace = [
-    'courier' => 'cour',
 //    'courier' => 'freemono',
+    'courier' => 'cour',
     'times' => 'freeserif',
+    'ubuntu mono' => 'ubuntumono',
 ];
 
 $aData = json_decode($model->sert_template, true);

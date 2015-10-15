@@ -22,6 +22,7 @@ $fons = [
     'Times' => 'Times',
     'Lobster' => 'Lobster',
     'Courier' => 'Courier',
+    'Ubuntu Mono' => 'Ubuntu Mono',
 ];
 $aFontList = [];
 foreach($fons As $k=>$v) {
