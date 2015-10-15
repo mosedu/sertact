@@ -164,6 +164,20 @@ class SertController extends Controller
     }
 
     /**
+     * Print to pdf
+     * @param integer $id
+     * @return mixed
+     */
+    public function actionTopdf($id)
+    {
+        $model = $this->findModel($id); // ->delete();
+        $ret = $this->render('pdf01', [
+            'model' => $model,
+        ]);
+        return $ret;
+    }
+
+    /**
      * Finds the Sert model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param integer $id

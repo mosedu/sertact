@@ -83,7 +83,7 @@
                 findEl = function(dom){
                     dom.children().each(function(index, element){
                         var o = jQuery(this), v = o.data('field');
-                        console.log(o, v);
+//                        console.log(o, v);
                         if( v ) {
                             for( var i in oFld ) {
                                 if( i == v ) {
@@ -99,7 +99,7 @@
                     });
                 };
             findEl(oDom);
-            console.log(aConn);
+//            console.log(aConn);
             return aConn;
         },
         setForm = function(ob, settings, name, control){
@@ -240,7 +240,7 @@
             return;
         }
         var data = ob.getData(),
-            el = jQuery('<div class="selectregion"><a href="#" class="btn btn-default">'+data.title+'</a><div class="panel-control"></div></div>'),
+            el = jQuery('<div class="selectregion col-md-12"><a href="#" class="btn btn-default btn-block">'+data.title+'</a><div class="panel-control"></div></div>'),
             dom = ob.getElement();
 
         panel.append(el);
@@ -270,27 +270,29 @@
         if( panel === null ) {
             return;
         }
-        var o = jQuery(
-            '<div class="text-control">'
-            + '<a href="#" title="Bold" class="button-bold btn btn-default" data-field="bold">B</a>'
+        if( jQuery(".text-control").length == 0 ) {
+            var o = jQuery(
+                '<div class="text-control">'
+                + '<a href="#" title="Bold" class="button-bold btn btn-default" data-field="bold">B</a>'
 //            + '<a href="#" title="Italic" class="button-italic btn btn-default" data-field="italic">I</a>'
-            + '<input type="checkbox" id="cb-italic" data-field="italic"> <label for="cb-italic">Italic</label>'
-            + '<a href="#" title="Underline" class="button-underline btn btn-default" data-field="underline">U</a>'
-            + '<br />'
+                + '<input type="checkbox" id="cb-italic" data-field="italic"> <label for="cb-italic">Italic</label>'
+                + '<a href="#" title="Underline" class="button-underline btn btn-default" data-field="underline">U</a>'
+                + '<br />'
 //            + '<a href="#" title="Left" class="button-align-left btn btn-default" data-field="align" data-value="left">Left</a>'
 //            + '<a href="#" title="Center" class="button-align-center btn btn-default" data-field="align" data-value="center">Center</a>'
 //            + '<a href="#" title="Right" class="button-align-right btn btn-default" data-field="align" data-value="right">Right</a>'
-              + '<select data-field="align"><option value="left">Left</option><option value="right">Right</option><option value="center">Center</option></select>'
+                + '<select data-field="align"><option value="left">Left</option><option value="right">Right</option><option value="center">Center</option></select>'
 
 //            + '<input type="radio" name="group2" value="left" data-field="align"> Left '
 //            + '<input type="radio" name="group2" value="center" data-field="align"> Center'
 //            + '<input type="radio" name="group2" value="right"  data-field="align"> Rigth'
-            + '<br />'
-            + '<input type="text" data-field="text" />'
-            + '</div>'
-        );
+                + '<br />'
+                + '<input type="text" data-field="text" />'
+                + '</div>'
+            );
 
-        panel.append(o);
+            panel.append(o);
+        }
     };
 
     var methods = {
@@ -341,7 +343,7 @@
         },
         regions: function() {
             var $editor = $(this),
-                r = $editor.data('drawpage').regions
+                r = $editor.data('drawpage').regions,
                 a = [];
             for(var i= 0; i < r.length; i++) {
                 a.push(r[i].getData());
@@ -350,8 +352,23 @@
         },
         append: function(conf) {
             var $editor = $(this),
-                data = $editor.data('drawpage');
-            data.regions.push(addElement(conf));
+                data = $editor.data('drawpage'),
+                r = data.regions,
+                settings = data.settings,
+                page = r.reduce(
+                    function(res, item, index, arr){
+                        return (item.getData().type == "page") ? item : res;
+                    },
+                    null
+                );
+            oTmp = addElement(conf, $editor); // new Text(regions[i]);
+            if( oTmp !== null ) {
+                oTmp.draw(page.getElement(), settings.scale);
+                addToPanel(settings.panel, oTmp);
+                data.regions.push(oTmp);
+            }
+
+//            data.regions.push(addElement(conf));
         },
         select: function(ob) {
             select(ob);
@@ -445,6 +462,7 @@
                 underline: false,
                 align: "left",
                 fontsize: 10, // mm
+                fontfamily: 'Arial',
                 left: null,   // mm
                 right: null,  // mm
                 top: null,    // mm
@@ -480,6 +498,7 @@
                         "text-align": val("align"),
                         "font-weight": val("bold") ? "bold" : "normal",
                         "font-style": val("italic") ? "italic" : "normal",
+                        "font-family": val("fontfamily"),
                         "text-decoration": val("underline") ? "underline" : "none"
                     },
                     aKeys = ["left", "right", "top", "bottom", "width", "height"];

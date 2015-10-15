@@ -17,8 +17,21 @@ $this->params['breadcrumbs'][] = ['label' => 'Сертификаты', 'url' => 
 $this->params['breadcrumbs'][] = $this->title;
 
 JuiAsset::register($this);
+$fons = [
+    'Arial' => 'Arial',
+    'Times' => 'Times',
+    'Lobster' => 'Lobster',
+    'Courier' => 'Courier',
+];
+$aFontList = [];
+foreach($fons As $k=>$v) {
+    $aFontList[] = '<option value="'.$k.'">'.$v.'</option>';
+}
+
+// <link href='https://fonts.googleapis.com/css?family=Lobster' rel='stylesheet' type='text/css'>
 
 ?>
+
 <div class="sert-form">
 
     <?php
@@ -34,24 +47,77 @@ JuiAsset::register($this);
     ?>
 
     <div class="draw">
-        <div id="paint-region"></div>
-        <div id="tool-region">
+        <div id="tool-region" style="float: right; width: 300px; margin-left: 10px; background-color: #ffffff; min-height: 100%;">
             <div id="img-control">
                 <a href="#" title="Select source" id="button-src" class="">Src</a>
             </div>
-            <div id="text-control">
-                <a href="#" title="Bold" id="button-bold" class="">B</a>
-                <a href="#" title="Italic" id="button-italic" class="">I</a>
-                <a href="#" title="Underline" id="button-underline" class="">U</a>
+            <div class="text-control">
+                <div class="col-md-5">
+                    Шрифт
+                </div>
+                <div class="col-md-7">
+                    <select class="form-control" data-field="fontfamily"><?= implode('', $aFontList) ?></select>
+                </div>
+
+                <div class="col-md-5">
+                    Размер
+                </div>
+                <div class="col-md-7">
+                    <select class="form-control" data-field="fontsize"><?= array_reduce(range(3, 50), function($res, $item){ return $res . '<option value="'.$item.'">'.$item.'</option>'; }, "") ?></select>
+                </div>
+
+                <div class="col-md-5">
+                    Вид
+                </div>
+                <div class="col-md-7">
+                    <a href="#" title="Bold" class="button-bold btn btn-default" data-field="bold">B</a>
+                    <a href="#" title="Italic" class="button-italic btn btn-default" data-field="italic">I</a>
+                    <!-- input type="checkbox" id="cb-italic" data-field="italic"> <label for="cb-italic">Italic</label -->
+                    <a href="#" title="Underline" class="button-underline btn btn-default" data-field="underline">U</a>
+                </div>
+
+                <div class="col-md-5">
+                    Выравнивание
+                </div>
+                <div class="col-md-7">
+                    <a href="#" title="Left" class="button-align-left btn btn-default" data-field="align" data-value="left">L</a>
+                    <a href="#" title="Center" class="button-align-center btn btn-default" data-field="align" data-value="center">C</a>
+                    <a href="#" title="Right" class="button-align-right btn btn-default" data-field="align" data-value="right">R</a>
+                    <!-- select data-field="align"><option value="left">Left</option><option value="right">Right</option><option value="center">Center</option></select -->
+                </div>
+
+                <!-- input type="radio" name="group2" value="left" data-field="align"> Left
+                <input type="radio" name="group2" value="center" data-field="align"> Center
+                <input type="radio" name="group2" value="right"  data-field="align"> Rigth -->
+
+                <div class="col-md-5">
+                    Текст
+                </div>
+                <div class="col-md-7">
+                    <input class="form-control" type="text" data-field="text" />
+                </div>
+                <div class="clearfix"></div>
             </div>
             <div class="controls">
-                <a href="#" title="Add img" id="button-addimg" class="btn btn-default">+ img</a>
-                <a href="#" title="Add text" id="button-addtext" class="btn btn-default">+ text</a>
-                <?= $form->field($model, 'sert_name')->textInput(['maxlength' => 255]) ?>
-                <?= $form->field($model, 'sert_template', ['template' => "{input}"])->hiddenInput() ?>
-                <?= Html::submitButton($model->isNewRecord ? 'Создать' : 'Сохранить', ['class' => 'btn btn-success']) ?>
+                <div class="col-md-12">
+                    <?= $form->field($model, 'sert_name')->textInput(['maxlength' => 255]) ?>
+                    <?= $form->field($model, 'sert_template', ['template' => "{input}"])->hiddenInput() ?>
+                </div>
+                <div class="col-md-12">
+                    <?= Html::submitButton($model->isNewRecord ? 'Создать' : 'Сохранить', ['class' => 'btn btn-success']) ?>
+                    <div class="clearfix"></div>
+                </div>
+
+                <div class="col-md-12">
+                    <a href="#" title="Add img" id="button-addimg" class="btn btn-default">+ img</a>
+                    <a href="#" title="Add text" id="button-addtext" class="btn btn-default">+ text</a>
+                    <div class="clearfix"></div>
+                </div>
+
             </div>
         </div>
+        <div id="paint-region"></div>
+        <div class="clearfix"></div>
     </div>
     <?php ActiveForm::end(); ?>
 </div>

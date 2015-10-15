@@ -1,3 +1,10 @@
+@font-face {
+    font-family: 'Lobster';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Lobster'), local('Lobster-Regular'), url(lobster.woff2) format('woff2');
+}
+
 html,
 body {
     height: 100%;
@@ -132,4 +139,13 @@ a.desc:after {
 
 .panel-control {
     display: none;
+}
+
+.text-control {
+/*    padding: 12px;*/
+    background-color: #eeeeee;
+}
+.col-md-12, .col-md-5, .col-md-7 {
+    margin-top: 6px;
+    margin-bottom: 6px;
 }
